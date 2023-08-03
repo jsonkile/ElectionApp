@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "53425427823",
+    "project_id": "election-d2d38",
+    "storage_bucket": "election-d2d38.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:53425427823:android:516666c3f8a7f5f128c49a",
+        "android_client_info": {
+          "package_name": "com.jsonkile.electionapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "53425427823-3g9ta84b2g3a4spvi5huag06lp0uev3g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC05IlXSvpxLI81rlC_OspRAoWw8sf7qUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "53425427823-3g9ta84b2g3a4spvi5huag06lp0uev3g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
