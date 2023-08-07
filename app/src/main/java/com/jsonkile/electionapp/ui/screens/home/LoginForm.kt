@@ -17,6 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +39,7 @@ import com.jsonkile.electionapp.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginForm(backClick: () -> Unit) {
+fun LoginForm(backClick: () -> Unit, login: (String, String) -> Unit) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -49,9 +53,12 @@ fun LoginForm(backClick: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+
         TextField(
-            value = "",
-            onValueChange = {},
+            value = email,
+            onValueChange = { email = it },
             modifier = Modifier
                 .wrapContentSize()
                 .padding(vertical = 10.dp),
@@ -64,8 +71,8 @@ fun LoginForm(backClick: () -> Unit) {
         )
 
         TextField(
-            value = "",
-            onValueChange = {},
+            value = password,
+            onValueChange = { password = it },
             modifier = Modifier
                 .wrapContentSize()
                 .padding(vertical = 10.dp),
@@ -81,9 +88,10 @@ fun LoginForm(backClick: () -> Unit) {
         )
 
         PrimaryButton(
-            onClick = { },
+            onClick = { login(email, password) },
             modifier = Modifier.padding(top = 15.dp),
-            label = "Continue"
+            label = "Continue",
+            enabled = email.isNotBlank() && password.isNotBlank()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -113,7 +121,7 @@ fun PreviewLoginForm() {
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(modifier = Modifier) {
-                LoginForm(backClick = {})
+                LoginForm(backClick = {}, login = { _, _ -> })
             }
         }
     }

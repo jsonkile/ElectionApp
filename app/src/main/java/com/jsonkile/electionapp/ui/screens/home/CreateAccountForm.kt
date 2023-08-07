@@ -39,7 +39,10 @@ import com.jsonkile.electionapp.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAccountForm(backClick: () -> Unit, onCreateAccount: (String, String) -> Unit) {
+fun CreateAccountForm(
+    backClick: () -> Unit,
+    onCreateAccount: (String, String) -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

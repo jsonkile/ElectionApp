@@ -27,7 +27,21 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
-                auth.createUserWithEmailAndPassword(emailAddress, password).await()
+                auth.createUserWithEmailAndPassword(emailAddress.trim(), password).await()
+                _uiState.update { it.copy(isAuthenticated = true) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(uiMessage = e.message) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun login(emailAddress: String, password: String){
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoading = true) }
+                auth.signInWithEmailAndPassword(emailAddress.trim(), password).await()
                 _uiState.update { it.copy(isAuthenticated = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(uiMessage = e.message) }
