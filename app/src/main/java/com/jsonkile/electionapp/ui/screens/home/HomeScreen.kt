@@ -38,7 +38,7 @@ import com.jsonkile.electionapp.ui.theme.Typography
 fun HomeScreen(
     finish: () -> Unit,
     uiState: HomeViewModel.UiState = HomeViewModel.UiState(),
-    createAccount: (String, String) -> Unit,
+    createAccount: (String, String, String) -> Unit,
     login: (String, String) -> Unit,
     clearUiMessage: () -> Unit
 ) {
@@ -126,7 +126,7 @@ fun PreviewHomeScreen() {
     ElectionAppTheme(useDarkTheme = false) {
         HomeScreen(
             finish = {},
-            createAccount = { _, _ -> },
+            createAccount = { _, _, _ -> },
             clearUiMessage = { },
             login = { _, _ -> })
     }

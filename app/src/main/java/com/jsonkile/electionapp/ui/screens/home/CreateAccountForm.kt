@@ -41,7 +41,7 @@ import com.jsonkile.electionapp.ui.theme.Typography
 @Composable
 fun CreateAccountForm(
     backClick: () -> Unit,
-    onCreateAccount: (String, String) -> Unit
+    onCreateAccount: (String, String, String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -68,7 +68,7 @@ fun CreateAccountForm(
                 .padding(vertical = 10.dp),
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Email,
+                keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Next
             ),
             label = { Text(text = "Voter ID") })
@@ -105,7 +105,7 @@ fun CreateAccountForm(
         )
 
         PrimaryButton(
-            onClick = { onCreateAccount(email, password) },
+            onClick = { onCreateAccount(email, password, voterId) },
             modifier = Modifier.padding(top = 15.dp),
             label = "Continue",
             enabled = email.isNotBlank() && password.isNotBlank()
@@ -138,7 +138,7 @@ fun PreviewCreateAccountForm() {
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(modifier = Modifier) {
-                CreateAccountForm(backClick = {}, onCreateAccount = { _, _ -> })
+                CreateAccountForm(backClick = {}, onCreateAccount = { _, _, _ -> })
             }
         }
     }

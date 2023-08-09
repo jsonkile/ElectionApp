@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.jsonkile.electionapp.data.models.Voter
+import com.jsonkile.electionapp.util.ktorClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,12 +27,23 @@ class HomeViewModel : ViewModel() {
 
     private val auth = Firebase.auth
 
-    fun createAccount(emailAddress: String, password: String) {
+    fun createAccount(emailAddress: String, password: String, voterId: String) {
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
+
+                val voters =
+                    ktorClient.get("https://raw.githubusercontent.com/jsonkile/evoting-app-host/main/voters.json")
+                        .body<List<Voter>>()
+
+                val voter =
+                    voters.firstOrNull { voter -> voter.emailAddress == emailAddress && voter.voterId == voterId }
+
+                requireNotNull(voter) { "The email address or voters id was not found in voters registration record. Please contact INEC." }
+
                 auth.createUserWithEmailAndPassword(emailAddress.trim(), password).await()
                 _uiState.update { it.copy(isAuthenticated = true) }
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(uiMessage = e.message) }
             } finally {
@@ -37,7 +52,7 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun login(emailAddress: String, password: String){
+    fun login(emailAddress: String, password: String) {
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }

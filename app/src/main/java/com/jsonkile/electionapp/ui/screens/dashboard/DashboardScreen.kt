@@ -6,9 +6,11 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +34,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Expand
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Face6
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.SentimentNeutral
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -44,20 +57,39 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.util.toRange
 import coil.compose.AsyncImage
+import com.github.tehras.charts.bar.BarChart
+import com.github.tehras.charts.bar.BarChartData
+import com.github.tehras.charts.bar.renderer.bar.SimpleBarDrawer
+import com.github.tehras.charts.bar.renderer.label.SimpleValueDrawer
+import com.github.tehras.charts.bar.renderer.xaxis.SimpleXAxisDrawer
+import com.github.tehras.charts.bar.renderer.yaxis.LabelFormatter
+import com.github.tehras.charts.bar.renderer.yaxis.SimpleYAxisDrawer
+import com.github.tehras.charts.piechart.animation.simpleChartAnimation
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.jsonkile.electionapp.data.models.Candidate
+import com.jsonkile.electionapp.data.models.Poll
+import com.jsonkile.electionapp.data.models.Voter
+import com.jsonkile.electionapp.ui.components.LoadingDialog
+import com.jsonkile.electionapp.ui.components.MessageDialog
 import com.jsonkile.electionapp.ui.components.PrimaryButton
 import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
-import com.jsonkile.electionapp.util.mockCandidates
 import com.jsonkile.electionapp.util.mockNews
 
 @Composable
@@ -65,10 +97,22 @@ fun DashboardScreen(
     finish: () -> Unit,
     useDarkMode: Boolean,
     toggleDarkMode: (Boolean) -> Unit,
-    moveToVoteScreen: () -> Unit
+    moveToVoteScreen: (String) -> Unit,
+    uiState: DashboardViewModel.UiState,
+    clearUiMessage: () -> Unit,
+    polls: List<Poll> = emptyList()
 ) {
     BackHandler(enabled = true) {
         finish()
+    }
+
+    if (uiState.isLoading) LoadingDialog {}
+
+    if (uiState.uiMessage.isNullOrBlank().not()) {
+        MessageDialog(
+            onDismissRequest = { clearUiMessage() },
+            message = uiState.uiMessage.orEmpty()
+        )
     }
 
     //set to false
@@ -77,6 +121,8 @@ fun DashboardScreen(
     LaunchedEffect(Unit) {
         visible = true
     }
+
+    var expandedCandidate: Candidate? by remember { mutableStateOf(null) }
 
     AnimatedVisibility(
         enter = fadeIn(
@@ -106,10 +152,49 @@ fun DashboardScreen(
                 }
             }
 
-            //start voting
+            //welcome
+            uiState.voter?.let {
+                item {
+                    Text(
+                        text = "Welcome back, ${uiState.voter.firstName}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 26.sp
+                        ),
+                        maxLines = 1,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        "Securely and quickly have your say from the comfort of your home",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 13.sp,
+                        lineHeight = 15.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+
+                    PrimaryButton(
+                        onClick = { moveToVoteScreen(uiState.voter.voterId.orEmpty()) },
+                        label = "Vote now",
+                        enabled = Firebase.remoteConfig.getBoolean("polls_active")
+                    )
+                }
+            }
+
+            //polls
             item {
+
+                Spacer(modifier = Modifier.height(13.dp))
+
                 Text(
-                    text = "Cast your vote",
+                    text = "Live polls",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 19.sp
@@ -119,24 +204,63 @@ fun DashboardScreen(
                     textAlign = TextAlign.Start
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(15.dp))
+
+                val bars =
+                    polls.map { poll ->
+                        BarChartData.Bar(
+                            label = "${poll.party}-${poll.count}",
+                            value = remember { poll.count.toFloat() },
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                BarChart(
+                    barChartData = BarChartData(bars = bars),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    animation = simpleChartAnimation(),
+                    barDrawer = SimpleBarDrawer(),
+                    xAxisDrawer = SimpleXAxisDrawer(axisLineColor = MaterialTheme.colorScheme.onSurface),
+                    yAxisDrawer = SimpleYAxisDrawer(
+                        axisLineColor = MaterialTheme.colorScheme.onSurface,
+                        labelTextColor = MaterialTheme.colorScheme.onSurface,
+                        labelTextSize = 8.sp,
+                        labelValueFormatter = object : LabelFormatter {
+                            override fun invoke(value: Float): String = "${value.toInt()}"
+                        }
+                    ),
+                    labelDrawer = SimpleValueDrawer(
+                        drawLocation = SimpleValueDrawer.DrawLocation.Outside,
+                        labelTextColor = MaterialTheme.colorScheme.onSurface,
+                        labelTextSize = 9.sp
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
 
                 Text(
-                    "Securely and quickly have your say from the comfort of your home",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 13.sp,
-                    lineHeight = 15.sp
+                    text = "Registered voters: ${uiState.votersCount}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Normal, fontSize = 9.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Start
                 )
 
-            }
+                Spacer(modifier = Modifier.height(5.dp))
 
-            item {
-
-                PrimaryButton(
-                    onClick = { moveToVoteScreen() },
-                    label = "Vote now"
+                Text(
+                    text = "Votes recorded: ${polls.sumOf { it.count }}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Start
                 )
-
             }
 
             //candidates
@@ -178,13 +302,19 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
 
-                    mockCandidates.forEach { candidate ->
+                    uiState.candidates.forEach { candidate ->
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.wrapContentHeight()
+                            modifier = Modifier
+                                .wrapContentHeight()
+                                .clickable(interactionSource = remember {
+                                    MutableInteractionSource()
+                                }, indication = rememberRipple(bounded = false)) {
+                                    expandedCandidate = candidate
+                                }
                         ) {
                             AsyncImage(
-                                model = candidate.image,
+                                model = candidate.profileImageUrl,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(50.dp)
@@ -199,7 +329,7 @@ fun DashboardScreen(
                             Spacer(modifier = Modifier.height(7.dp))
 
                             Text(
-                                candidate.name, fontSize = 11.sp,
+                                candidate.fullName, fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
                                 modifier = Modifier
@@ -212,7 +342,7 @@ fun DashboardScreen(
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
-                                candidate.party, fontSize = 10.sp,
+                                candidate.party.orEmpty(), fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 modifier = Modifier.wrapContentSize(),
@@ -232,7 +362,7 @@ fun DashboardScreen(
                 Spacer(modifier = Modifier.height(13.dp))
 
                 Text(
-                    text = "INEC Press",
+                    text = "In the news",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Medium,
                         fontSize = 19.sp
@@ -243,20 +373,20 @@ fun DashboardScreen(
                 )
             }
 
-            items(items = mockNews) {
+            items(items = uiState.headlines) { headline ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { }
+                        .fillMaxWidth()
+                        .wrapContentHeight()
                 ) {
                     AsyncImage(
-                        model = it.imageUrl,
+                        model = headline.urlToImage,
                         contentDescription = "headline image",
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(3 / 2f)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(RoundedCornerShape(8.dp))
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceVariant,
                                 shape = RoundedCornerShape(10.dp)
@@ -266,14 +396,14 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(3f)) {
                         Text(
-                            it.header,
+                            headline.title.orEmpty(),
                             maxLines = 2,
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 14.sp
+                            fontSize = 13.sp
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
-                            it.dateAdded,
+                            headline.source?.name.orEmpty(),
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -283,15 +413,185 @@ fun DashboardScreen(
 
             //auth
             item {
-                PrimaryButton(
-                    onClick = { Firebase.auth.signOut() },
-                    label = "Logout"
+
+                Spacer(modifier = Modifier.height(25.dp))
+
+                val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                ) {
+                    drawLine(
+                        color = lineColor,
+                        start = Offset.Zero,
+                        end = Offset(size.width, 0f),
+                        strokeWidth = 3f
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillParentMaxWidth()
+                ) {
+                    Text(
+                        text = "Logged in as ${uiState.voter?.fullName}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .width(250.dp)
+                            .padding(end = 20.dp),
+                        textAlign = TextAlign.Start,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .clickable(interactionSource = remember {
+                                MutableInteractionSource()
+                            }, indication = rememberRipple(bounded = false)) {
+                                Firebase.auth.signOut()
+                            },
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Voter ID: ${uiState.voter?.voterId}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Start
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = "State of origin: ${uiState.voter?.stateOfOrigin}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Start
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = "Local government: ${uiState.voter?.localGovernment}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Start
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = "DOB: ${uiState.voter?.dateOfBirth}",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Start
                 )
             }
 
         }
 
     }
+
+    expandedCandidate?.let { candidate ->
+        Dialog(
+            onDismissRequest = { expandedCandidate = null },
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    .padding(20.dp)
+            ) {
+                AsyncImage(
+                    model = candidate.profileImageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.height(7.dp))
+
+                Text(
+                    candidate.fullName, fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    modifier = Modifier
+                        .width(80.dp)
+                        .wrapContentHeight(),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    candidate.party.orEmpty(), fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    modifier = Modifier.wrapContentSize(),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 13.sp
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+
+                Text(
+                    candidate.briefSummary.orEmpty(), fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .wrapContentHeight(),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp
+                )
+            }
+        }
+    }
+
 }
 
 @Preview
@@ -302,6 +602,13 @@ fun PreviewDashboardScreen() {
             finish = {},
             useDarkMode = false,
             toggleDarkMode = {},
-            moveToVoteScreen = {})
+            moveToVoteScreen = {},
+            uiState = DashboardViewModel.UiState(
+                voter = Voter(firstName = "Jayson Kardashian Silicon"), candidates = listOf(
+                    Candidate(party = "ADC"),
+                    Candidate(party = "PDP")
+                )
+            ), clearUiMessage = {}
+        )
     }
 }

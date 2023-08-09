@@ -22,7 +22,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
 
 @Composable
-fun BoxScope.MessageDialog(onDismissRequest: () -> Unit, message: String) {
+fun MessageDialog(onDismissRequest: () -> Unit, message: String) {
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
@@ -43,7 +43,6 @@ fun BoxScope.MessageDialog(onDismissRequest: () -> Unit, message: String) {
                 disabledElevation = 0.dp
             ),
             modifier = Modifier
-                .align(Alignment.BottomCenter)
                 .padding(bottom = 30.dp)
         ) {
             Text(

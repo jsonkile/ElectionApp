@@ -27,15 +27,19 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.jsonkile.electionapp.ui.screens.dashboard.DashboardScreen
+import com.jsonkile.electionapp.ui.screens.dashboard.DashboardViewModel
 import com.jsonkile.electionapp.ui.screens.home.HomeScreen
 import com.jsonkile.electionapp.ui.screens.home.HomeViewModel
 import com.jsonkile.electionapp.ui.screens.vote.VoteScreen
+import com.jsonkile.electionapp.ui.screens.vote.VoteViewModel
 import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
 import com.jsonkile.electionapp.util.voteWithFingerprint
 
@@ -115,8 +119,8 @@ class MainActivity : FragmentActivity() {
 
                                 HomeScreen(
                                     finish = { finish() },
-                                    createAccount = { email, password ->
-                                        homeViewModel.createAccount(email, password)
+                                    createAccount = { email, password, voterId ->
+                                        homeViewModel.createAccount(email, password, voterId)
                                     }, uiState = uiState,
                                     clearUiMessage = { homeViewModel.clearUiMessage() },
                                     login = { email, password ->
@@ -127,22 +131,50 @@ class MainActivity : FragmentActivity() {
                             }
 
                             composable("dashboard") {
+
+                                val dashboardViewModel: DashboardViewModel = viewModel()
+                                val uiState by dashboardViewModel.uiState.collectAsState()
+
+                                val polls by dashboardViewModel.getPollsAsFlow()
+                                    .collectAsState(initial = emptyList())
+
                                 DashboardScreen(
                                     finish = { finish() },
                                     useDarkMode = useDarkMode,
-                                    toggleDarkMode = { useDarkMode = it }, moveToVoteScreen = {
-                                        navController.navigate("vote")
-                                    })
+                                    toggleDarkMode = { useDarkMode = it },
+                                    moveToVoteScreen = { voterId ->
+                                        navController.navigate("vote/$voterId")
+                                    },
+                                    uiState = uiState,
+                                    clearUiMessage = { dashboardViewModel.clearUiMessage() },
+                                    polls = polls
+                                )
                             }
 
-                            composable("vote") {
-                                VoteScreen(onBack = {
-                                    navController.popBackStack()
-                                }, onAuth = { party ->
-                                    this@MainActivity.voteWithFingerprint(
-                                        party = party,
-                                        onSuccess = {})
+                            composable(
+                                "vote/{voterId}",
+                                arguments = listOf(navArgument("voterId") {
+                                    type = NavType.StringType
                                 })
+                            ) {
+
+                                val voteViewModel: VoteViewModel = viewModel()
+                                val uiState by voteViewModel.uiState.collectAsState()
+
+
+                                VoteScreen(
+                                    onBack = {
+                                        navController.popBackStack()
+                                    },
+                                    onAuth = { party ->
+                                        this@MainActivity.voteWithFingerprint(
+                                            party = party,
+                                            onSuccess = {
+                                                voteViewModel.castVote(party)
+                                            })
+                                    },
+                                    uiState = uiState,
+                                    clearUiMessage = { voteViewModel.clearUiMessage() })
                             }
                         }
 

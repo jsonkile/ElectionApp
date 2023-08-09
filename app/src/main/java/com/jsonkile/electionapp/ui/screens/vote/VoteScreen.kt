@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,15 +50,36 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.jsonkile.electionapp.data.models.Candidate
+import com.jsonkile.electionapp.ui.components.LoadingDialog
+import com.jsonkile.electionapp.ui.components.MessageDialog
 import com.jsonkile.electionapp.ui.components.PrimaryButton
 import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
-import com.jsonkile.electionapp.util.mockCandidates
 
 @Composable
-fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
+fun VoteScreen(
+    onBack: () -> Unit,
+    onAuth: (String) -> Unit,
+    uiState: VoteViewModel.UiState,
+    clearUiMessage: () -> Unit
+) {
 
     BackHandler {
         onBack()
+    }
+
+    if (uiState.hasVoted) MessageDialog(
+        onDismissRequest = { onBack() },
+        message = "Your vote has already been recorded. Thank you."
+    )
+
+    if (uiState.isLoading) LoadingDialog {}
+
+    if (uiState.uiMessage.isNullOrBlank().not()) {
+        MessageDialog(
+            onDismissRequest = { clearUiMessage() },
+            message = uiState.uiMessage.orEmpty()
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
@@ -114,7 +136,7 @@ fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
 
-                mockCandidates.forEach { candidate ->
+                uiState.candidates.forEach { candidate ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
@@ -133,7 +155,7 @@ fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
                         val nameTextColor: Color by animateColorAsState(if (selectedParty == candidate.party) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
 
                         AsyncImage(
-                            model = candidate.image,
+                            model = candidate.profileImageUrl,
                             contentDescription = null,
                             modifier = Modifier
                                 .size(imageSize)
@@ -153,7 +175,7 @@ fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
                         Spacer(modifier = Modifier.height(7.dp))
 
                         Text(
-                            candidate.name, fontSize = 13.sp,
+                            candidate.fullName, fontSize = 13.sp,
                             color = nameTextColor,
                             maxLines = 2,
                             modifier = Modifier
@@ -166,7 +188,7 @@ fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
                         Spacer(modifier = Modifier.height(1.dp))
 
                         Text(
-                            candidate.party, fontSize = 11.sp,
+                            candidate.party.orEmpty(), fontSize = 11.sp,
                             color = nameTextColor,
                             maxLines = 1,
                             modifier = Modifier.wrapContentSize(),
@@ -189,9 +211,11 @@ fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = rememberRipple(bounded = false),
-                        enabled = selectedParty != null
+                        enabled = selectedParty
+                            .isNullOrBlank()
+                            .not()
                     ) {
-                        onAuth(selectedParty.orEmpty())
+                        onAuth(selectedParty!!)
                     },
                 tint = MaterialTheme.colorScheme.primary
             )
@@ -210,6 +234,25 @@ fun VoteScreen(onBack: () -> Unit, onAuth: (String) -> Unit) {
 @Composable
 fun PreviewVoteScreen() {
     ElectionAppTheme() {
-        VoteScreen({}, {})
+        VoteScreen(
+            {},
+            {},
+            uiState = VoteViewModel.UiState(
+                candidates = listOf(
+                    Candidate(
+                        firstName = "Ryan",
+                        lastName = "Gosling",
+                        profileImageUrl = "",
+                        briefSummary = "Bad bitch"
+                    ),
+                    Candidate(
+                        firstName = "Missy",
+                        lastName = "Elliot",
+                        profileImageUrl = "",
+                        briefSummary = "Bad bitch"
+                    )
+                )
+            ), clearUiMessage = {}
+        )
     }
 }
