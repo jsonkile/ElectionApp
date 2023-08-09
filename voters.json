@@ -1,0 +1,352 @@
+[
+  {
+    "voterId": 1234567890123456,
+    "firstName": "John",
+    "lastName": "Doe",
+    "emailAddress": "john.doe@email.com",
+    "phoneNumber": "08012345678",
+    "stateOfOrigin": "Lagos",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "1990-04-15"
+  },
+  {
+    "voterId": 2345678901234567,
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "emailAddress": "jane.smith@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Abuja",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1985-11-27"
+  },
+  {
+    "voterId": 3456789012345678,
+    "firstName": "Alice",
+    "lastName": "Johnson",
+    "emailAddress": "alice.johnson@email.com",
+    "phoneNumber": "09098765432",
+    "stateOfOrigin": "Enugu",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1995-08-10"
+  },
+  {
+    "voterId": 4567890123456789,
+    "firstName": "Bob",
+    "lastName": "Williams",
+    "emailAddress": "bob.williams@email.com",
+    "phoneNumber": "07087654321",
+    "stateOfOrigin": "Rivers",
+    "localGovernment": "Local Govt 4",
+    "DateOfBirth": "1982-03-22"
+  },
+  {
+    "voterId": 5678901234567890,
+    "firstName": "Mary",
+    "lastName": "Brown",
+    "emailAddress": "mary.brown@email.com",
+    "phoneNumber": "08056789012",
+    "stateOfOrigin": "Kano",
+    "localGovernment": "Local Govt 5",
+    "DateOfBirth": "1978-09-05"
+  },
+  {
+    "voterId": 6789012345678901,
+    "firstName": "James",
+    "lastName": "Jones",
+    "emailAddress": "james.jones@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Anambra",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "2001-12-03"
+  },
+  {
+    "voterId": 7890123456789012,
+    "firstName": "Susan",
+    "lastName": "Miller",
+    "emailAddress": "susan.miller@email.com",
+    "phoneNumber": "09012345678",
+    "stateOfOrigin": "Kaduna",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1992-06-18"
+  },
+  {
+    "voterId": 8901234567890123,
+    "firstName": "Michael",
+    "lastName": "Davis",
+    "emailAddress": "michael.davis@email.com",
+    "phoneNumber": "07023456789",
+    "stateOfOrigin": "Delta",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1987-01-30"
+  },
+  {
+    "voterId": 9012345678901234,
+    "firstName": "Linda",
+    "lastName": "Anderson",
+    "emailAddress": "linda.anderson@email.com",
+    "phoneNumber": "08065432109",
+    "stateOfOrigin": "Oyo",
+    "localGovernment": "Local Govt 4",
+    "DateOfBirth": "1980-07-25"
+  },
+  {
+    "voterId": 1023456789012345,
+    "firstName": "David",
+    "lastName": "Wilson",
+    "emailAddress": "david.wilson@email.com",
+    "phoneNumber": "09087654321",
+    "stateOfOrigin": "Abia",
+    "localGovernment": "Local Govt 5",
+    "DateOfBirth": "1998-02-12"
+  },
+  {
+    "voterId": 2112345678901234,
+    "firstName": "Grace",
+    "lastName": "Johnson",
+    "emailAddress": "grace.johnson@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Abuja",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "1989-03-17"
+  },
+  {
+    "voterId": 3123456789012345,
+    "firstName": "Michael",
+    "lastName": "Okafor",
+    "emailAddress": "michael.okafor@email.com",
+    "phoneNumber": "09098765432",
+    "stateOfOrigin": "Enugu",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1975-11-12"
+  },
+  {
+    "voterId": 4234567890123456,
+    "firstName": "Sarah",
+    "lastName": "Ahmed",
+    "emailAddress": "sarah.ahmed@email.com",
+    "phoneNumber": "07087654321",
+    "stateOfOrigin": "Kano",
+    "localGovernment": "Local Govt 5",
+    "DateOfBirth": "1983-09-24"
+  },
+  {
+    "voterId": 5345678901234567,
+    "firstName": "Chris",
+    "lastName": "Adebayo",
+    "emailAddress": "chris.adebayo@email.com",
+    "phoneNumber": "08056789012",
+    "stateOfOrigin": "Lagos",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "2000-08-09"
+  },
+  {
+    "voterId": 6456789012345678,
+    "firstName": "Kate",
+    "lastName": "Okon",
+    "emailAddress": "kate.okon@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Delta",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1994-06-30"
+  },
+  {
+    "voterId": 7567890123456789,
+    "firstName": "Peter",
+    "lastName": "Yusuf",
+    "emailAddress": "peter.yusuf@email.com",
+    "phoneNumber": "09012345678",
+    "stateOfOrigin": "Abuja",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1988-05-22"
+  },
+  {
+    "voterId": 8678901234567890,
+    "firstName": "Aisha",
+    "lastName": "Balogun",
+    "emailAddress": "aisha.balogun@email.com",
+    "phoneNumber": "07023456789",
+    "stateOfOrigin": "Oyo",
+    "localGovernment": "Local Govt 4",
+    "DateOfBirth": "1999-02-06"
+  },
+  {
+    "voterId": 9789012345678900,
+    "firstName": "Abdul",
+    "lastName": "Ali",
+    "emailAddress": "abdul.ali@email.com",
+    "phoneNumber": "08065432109",
+    "stateOfOrigin": "Kaduna",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1981-12-19"
+  },
+  {
+    "voterId": 1000000000000000,
+    "firstName": "Sandra",
+    "lastName": "Uzor",
+    "emailAddress": "sandra.uzor@email.com",
+    "phoneNumber": "09087654321",
+    "stateOfOrigin": "Anambra",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "1997-07-31"
+  },
+  {
+    "voterId": 3157248965124587,
+    "firstName": "Oliver",
+    "lastName": "Smith",
+    "emailAddress": "oliver.smith@email.com",
+    "phoneNumber": "08012345678",
+    "stateOfOrigin": "Lagos",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "1992-05-18"
+  },
+  {
+    "voterId": 4512897402536879,
+    "firstName": "Sophia",
+    "lastName": "Johnson",
+    "emailAddress": "sophia.johnson@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Abuja",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1988-11-27"
+  },
+  {
+    "voterId": 9874523687456320,
+    "firstName": "Ethan",
+    "lastName": "Williams",
+    "emailAddress": "ethan.williams@email.com",
+    "phoneNumber": "09098765432",
+    "stateOfOrigin": "Enugu",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1995-08-10"
+  },
+  {
+    "voterId": 7562387456987451,
+    "firstName": "Emma",
+    "lastName": "Brown",
+    "emailAddress": "emma.brown@email.com",
+    "phoneNumber": "07087654321",
+    "stateOfOrigin": "Rivers",
+    "localGovernment": "Local Govt 4",
+    "DateOfBirth": "1983-03-22"
+  },
+  {
+    "voterId": 6548712548963254,
+    "firstName": "Noah",
+    "lastName": "Jones",
+    "emailAddress": "noah.jones@email.com",
+    "phoneNumber": "08056789012",
+    "stateOfOrigin": "Kano",
+    "localGovernment": "Local Govt 5",
+    "DateOfBirth": "1979-09-05"
+  },
+  {
+    "voterId": 1245879632154789,
+    "firstName": "Isabella",
+    "lastName": "Miller",
+    "emailAddress": "isabella.miller@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Anambra",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "2000-12-03"
+  },
+  {
+    "voterId": 7458963215487258,
+    "firstName": "Liam",
+    "lastName": "Davis",
+    "emailAddress": "liam.davis@email.com",
+    "phoneNumber": "09012345678",
+    "stateOfOrigin": "Kaduna",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1993-06-18"
+  },
+  {
+    "voterId": 3698452187452145,
+    "firstName": "Ava",
+    "lastName": "Anderson",
+    "emailAddress": "ava.anderson@email.com",
+    "phoneNumber": "07023456789",
+    "stateOfOrigin": "Delta",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1986-01-30"
+  },
+  {
+    "voterId": 9845123647856232,
+    "firstName": "Mia",
+    "lastName": "Wilson",
+    "emailAddress": "mia.wilson@email.com",
+    "phoneNumber": "08065432109",
+    "stateOfOrigin": "Oyo",
+    "localGovernment": "Local Govt 4",
+    "DateOfBirth": "1981-07-25"
+  },
+  {
+    "voterId": 1578963521487456,
+    "firstName": "Elijah",
+    "lastName": "Smith",
+    "emailAddress": "elijah.smith@email.com",
+    "phoneNumber": "09087654321",
+    "stateOfOrigin": "Abia",
+    "localGovernment": "Local Govt 5",
+    "DateOfBirth": "1999-02-12"
+  },
+  {
+    "voterId": 8796523154789654,
+    "firstName": "Amelia",
+    "lastName": "Okafor",
+    "emailAddress": "amelia.okafor@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Enugu",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1978-11-22"
+  },
+  {
+    "voterId": 1235987412369854,
+    "firstName": "James",
+    "lastName": "Ahmed",
+    "emailAddress": "james.ahmed@email.com",
+    "phoneNumber": "07087654321",
+    "stateOfOrigin": "Kano",
+    "localGovernment": "Local Govt 5",
+    "DateOfBirth": "1996-09-24"
+  },
+  {
+    "voterId": 9512369874125368,
+    "firstName": "Sofia",
+    "lastName": "Adebayo",
+    "emailAddress": "sofia.adebayo@email.com",
+    "phoneNumber": "08056789012",
+    "stateOfOrigin": "Lagos",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "1990-08-09"
+  },
+  {
+    "voterId": 3125412369874512,
+    "firstName": "Michael",
+    "lastName": "Okon",
+    "emailAddress": "michael.okon@email.com",
+    "phoneNumber": "08123456789",
+    "stateOfOrigin": "Delta",
+    "localGovernment": "Local Govt 3",
+    "DateOfBirth": "1998-06-30"
+  },
+  {
+    "voterId": 8523697412589631,
+    "firstName": "Charlotte",
+    "lastName": "Balogun",
+    "emailAddress": "charlotte.balogun@email.com",
+    "phoneNumber": "09012345678",
+    "stateOfOrigin": "Kaduna",
+    "localGovernment": "Local Govt 2",
+    "DateOfBirth": "1989-05-22"
+  },
+  {
+    "voterId": 1239874563214785,
+    "firstName": "Noah",
+    "lastName": "Uzor",
+    "emailAddress": "noah.uzor@email.com",
+    "phoneNumber": "07023456789",
+    "stateOfOrigin": "Anambra",
+    "localGovernment": "Local Govt 1",
+    "DateOfBirth": "2002-02-06"
+  }
+]
