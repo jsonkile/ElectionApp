@@ -4,4 +4,9 @@
         <key>polls_active</key>
         <value>false</value>
     </entry>
+
+    <entry>
+        <key>show_winner</key>
+        <value>false</value>
+    </entry>
 </defaultsMap>

@@ -1,7 +1,12 @@
 package com.jsonkile.electionapp
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -24,6 +29,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,8 +50,26 @@ import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
 import com.jsonkile.electionapp.util.voteWithFingerprint
 
 class MainActivity : FragmentActivity() {
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            //create notifications channel
+            val name = "general"
+            val descriptionText = "all notifications come through this channel"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val mChannel = NotificationChannel("fcm_channel_id", name, importance)
+            mChannel.description = descriptionText
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(mChannel)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        requestNotificationPermission()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -79,7 +103,8 @@ class MainActivity : FragmentActivity() {
 
                     val blushRadius: Float by animateFloatAsState(
                         targetValue = if (currentDestination == "home") LocalDensity.current.run { 650.dp.toPx() } else LocalDensity.current.run { 300.dp.toPx() },
-                        animationSpec = tween(durationMillis = 700, easing = LinearEasing)
+                        animationSpec = tween(durationMillis = 700, easing = LinearEasing),
+                        label = ""
                     )
 
                     LaunchedEffect(Unit) {
@@ -142,8 +167,8 @@ class MainActivity : FragmentActivity() {
                                     finish = { finish() },
                                     useDarkMode = useDarkMode,
                                     toggleDarkMode = { useDarkMode = it },
-                                    moveToVoteScreen = { voterId ->
-                                        navController.navigate("vote/$voterId")
+                                    moveToVoteScreen = { voterId, voterName ->
+                                        navController.navigate("vote?voterId=$voterId&voterName=$voterName")
                                     },
                                     uiState = uiState,
                                     clearUiMessage = { dashboardViewModel.clearUiMessage() },
@@ -152,8 +177,10 @@ class MainActivity : FragmentActivity() {
                             }
 
                             composable(
-                                "vote/{voterId}",
+                                "vote?voterId={voterId}&voterName={voterName}",
                                 arguments = listOf(navArgument("voterId") {
+                                    type = NavType.StringType
+                                }, navArgument("voterName") {
                                     type = NavType.StringType
                                 })
                             ) {
@@ -166,11 +193,11 @@ class MainActivity : FragmentActivity() {
                                     onBack = {
                                         navController.popBackStack()
                                     },
-                                    onAuth = { party ->
+                                    onAuth = { candidate ->
                                         this@MainActivity.voteWithFingerprint(
-                                            party = party,
+                                            party = candidate.party.orEmpty(),
                                             onSuccess = {
-                                                voteViewModel.castVote(party)
+                                                voteViewModel.castVote(candidate)
                                             })
                                     },
                                     uiState = uiState,
@@ -183,5 +210,17 @@ class MainActivity : FragmentActivity() {
             }
         }
 
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, android.Manifest.permission.POST_NOTIFICATIONS
+                ) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 }

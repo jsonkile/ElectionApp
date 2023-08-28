@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -26,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -34,15 +34,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Expand
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Face6
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material.icons.filled.SentimentNeutral
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,10 +51,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.util.toRange
 import coil.compose.AsyncImage
 import com.github.tehras.charts.bar.BarChart
 import com.github.tehras.charts.bar.BarChartData
@@ -86,18 +76,18 @@ import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.jsonkile.electionapp.data.models.Candidate
 import com.jsonkile.electionapp.data.models.Poll
 import com.jsonkile.electionapp.data.models.Voter
+import com.jsonkile.electionapp.ui.components.ElectionWinnerComponent
 import com.jsonkile.electionapp.ui.components.LoadingDialog
 import com.jsonkile.electionapp.ui.components.MessageDialog
 import com.jsonkile.electionapp.ui.components.PrimaryButton
 import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
-import com.jsonkile.electionapp.util.mockNews
 
 @Composable
 fun DashboardScreen(
     finish: () -> Unit,
     useDarkMode: Boolean,
     toggleDarkMode: (Boolean) -> Unit,
-    moveToVoteScreen: (String) -> Unit,
+    moveToVoteScreen: (String, String) -> Unit,
     uiState: DashboardViewModel.UiState,
     clearUiMessage: () -> Unit,
     polls: List<Poll> = emptyList()
@@ -181,339 +171,409 @@ fun DashboardScreen(
 
 
                     PrimaryButton(
-                        onClick = { moveToVoteScreen(uiState.voter.voterId.orEmpty()) },
-                        label = "Vote now",
+                        onClick = {
+                            moveToVoteScreen(
+                                uiState.voter.voterId.orEmpty(),
+                                uiState.voter.fullName
+                            )
+                        },
+                        label = if (Firebase.remoteConfig.getBoolean("polls_active")) "Vote now" else "Voting closed",
                         enabled = Firebase.remoteConfig.getBoolean("polls_active")
                     )
                 }
             }
 
-            //polls
-            item {
+            //winner
+            if (Firebase.remoteConfig.getBoolean("show_winner") && polls.isNotEmpty() && uiState.candidates.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                Spacer(modifier = Modifier.height(13.dp))
-
-                Text(
-                    text = "Live polls",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 19.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
-                )
-
-                Spacer(modifier = Modifier.height(15.dp))
-
-                val bars =
-                    polls.map { poll ->
-                        BarChartData.Bar(
-                            label = "${poll.party}-${poll.count}",
-                            value = remember { poll.count.toFloat() },
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                BarChart(
-                    barChartData = BarChartData(bars = bars),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                    animation = simpleChartAnimation(),
-                    barDrawer = SimpleBarDrawer(),
-                    xAxisDrawer = SimpleXAxisDrawer(axisLineColor = MaterialTheme.colorScheme.onSurface),
-                    yAxisDrawer = SimpleYAxisDrawer(
-                        axisLineColor = MaterialTheme.colorScheme.onSurface,
-                        labelTextColor = MaterialTheme.colorScheme.onSurface,
-                        labelTextSize = 8.sp,
-                        labelValueFormatter = object : LabelFormatter {
-                            override fun invoke(value: Float): String = "${value.toInt()}"
-                        }
-                    ),
-                    labelDrawer = SimpleValueDrawer(
-                        drawLocation = SimpleValueDrawer.DrawLocation.Outside,
-                        labelTextColor = MaterialTheme.colorScheme.onSurface,
-                        labelTextSize = 9.sp
+                    Text(
+                        text = "Your winner",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 19.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
                     )
-                )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
 
-                Text(
-                    text = "Registered voters: ${uiState.votersCount}",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Normal, fontSize = 9.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.wrapContentSize(),
-                    textAlign = TextAlign.Start
-                )
+                    val winningCandidate =
+                        uiState.candidates.firstOrNull { candidate -> candidate.party == polls.maxByOrNull { poll -> poll.count }?.party }
 
-                Spacer(modifier = Modifier.height(5.dp))
+                    ElectionWinnerComponent(
+                        imageUrl = winningCandidate?.profileImageUrl.orEmpty(),
+                        modifier = Modifier
+                    )
 
-                Text(
-                    text = "Votes recorded: ${polls.sumOf { it.count }}",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Normal, fontSize = 10.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.wrapContentSize(),
-                    textAlign = TextAlign.Start
-                )
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    Text(
+                        winningCandidate?.fullName.orEmpty(), fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        modifier = Modifier
+                            .wrapContentSize(),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 13.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Text(
+                        "has been confirmed the winner of the latest presidential election",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 13.sp
+                    )
+                }
+            }
+
+            //polls
+            if (polls.isNotEmpty()) {
+                item {
+
+                    Spacer(modifier = Modifier.height(13.dp))
+
+                    Text(
+                        text = "Live polls",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 19.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
+                    )
+
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    val barColor = MaterialTheme.colorScheme.primary
+
+                    val bars =
+                        remember(polls, barColor) {
+                            polls.map { poll ->
+                                BarChartData.Bar(
+                                    label = "${poll.party}-${poll.count}",
+                                    value = poll.count.toFloat(),
+                                    color = barColor
+                                )
+                            }
+                        }
+
+
+                    BarChart(
+                        barChartData = BarChartData(bars = bars),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        animation = simpleChartAnimation(),
+                        barDrawer = SimpleBarDrawer(),
+                        xAxisDrawer = SimpleXAxisDrawer(axisLineColor = MaterialTheme.colorScheme.onSurface),
+                        yAxisDrawer = SimpleYAxisDrawer(
+                            axisLineColor = MaterialTheme.colorScheme.onSurface,
+                            labelTextColor = MaterialTheme.colorScheme.onSurface,
+                            labelTextSize = 8.sp,
+                            labelValueFormatter = object : LabelFormatter {
+                                override fun invoke(value: Float): String = "${value.toInt()}"
+                            }
+                        ),
+                        labelDrawer = SimpleValueDrawer(
+                            drawLocation = SimpleValueDrawer.DrawLocation.Outside,
+                            labelTextColor = MaterialTheme.colorScheme.onSurface,
+                            labelTextSize = 9.sp
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    Text(
+                        text = "Registered voters: ${uiState.votersCount}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal, fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Start
+                    )
+
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Text(
+                        text = "Votes recorded: ${polls.sumOf { it.count }}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal, fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
 
             //candidates
-            item {
+            if (uiState.candidates.isNotEmpty()) {
+                item {
 
-                Spacer(modifier = Modifier.height(13.dp))
+                    Spacer(modifier = Modifier.height(13.dp))
 
-                Text(
-                    text = "Meet the candidates",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 19.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
-                )
-            }
+                    Text(
+                        text = "Meet the candidates",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 19.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
+                    )
+                }
 
-            item {
+                item {
 
-                val scrollState = rememberScrollState()
+                    val scrollState = rememberScrollState()
 
-                Row(
-                    modifier = Modifier
-                        .layout { measurable, constraints ->
-                            val placeable = measurable.measure(
-                                constraints.copy(
-                                    maxWidth = constraints.maxWidth + 60.dp.roundToPx()
+                    Row(
+                        modifier = Modifier
+                            .layout { measurable, constraints ->
+                                val placeable = measurable.measure(
+                                    constraints.copy(
+                                        maxWidth = constraints.maxWidth + 60.dp.roundToPx()
+                                    )
                                 )
-                            )
-                            layout(placeable.width, placeable.height) {
-                                placeable.place(0, 0)
+                                layout(placeable.width, placeable.height) {
+                                    placeable.place(0, 0)
+                                }
+                            }
+                            .wrapContentHeight()
+                            .horizontalScroll(enabled = true, state = scrollState)
+                            .padding(horizontal = 30.dp),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+
+                        uiState.candidates.forEach { candidate ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .wrapContentHeight()
+                                    .clickable(interactionSource = remember {
+                                        MutableInteractionSource()
+                                    }, indication = rememberRipple(bounded = false)) {
+                                        expandedCandidate = candidate
+                                    }
+                            ) {
+                                AsyncImage(
+                                    model = candidate.profileImageUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.surfaceVariant
+                                        ),
+                                    contentScale = ContentScale.Crop
+                                )
+
+                                Spacer(modifier = Modifier.height(7.dp))
+
+                                Text(
+                                    candidate.fullName, fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 2,
+                                    modifier = Modifier
+                                        .width(80.dp)
+                                        .wrapContentHeight(),
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 13.sp
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    candidate.party.orEmpty(), fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    modifier = Modifier.wrapContentSize(),
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 13.sp
+                                )
                             }
                         }
-                        .wrapContentHeight()
-                        .horizontalScroll(enabled = true, state = scrollState)
-                        .padding(horizontal = 30.dp),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
 
-                    uiState.candidates.forEach { candidate ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .wrapContentHeight()
-                                .clickable(interactionSource = remember {
-                                    MutableInteractionSource()
-                                }, indication = rememberRipple(bounded = false)) {
-                                    expandedCandidate = candidate
-                                }
-                        ) {
-                            AsyncImage(
-                                model = candidate.profileImageUrl,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.surfaceVariant
-                                    ),
-                                contentScale = ContentScale.Crop
-                            )
-
-                            Spacer(modifier = Modifier.height(7.dp))
-
-                            Text(
-                                candidate.fullName, fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                modifier = Modifier
-                                    .width(80.dp)
-                                    .wrapContentHeight(),
-                                textAlign = TextAlign.Center,
-                                lineHeight = 13.sp
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                candidate.party.orEmpty(), fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                modifier = Modifier.wrapContentSize(),
-                                textAlign = TextAlign.Center,
-                                lineHeight = 13.sp
-                            )
-                        }
                     }
 
                 }
-
             }
 
             //press
-            item {
+            if (uiState.headlines.isNotEmpty()) {
+                item {
 
-                Spacer(modifier = Modifier.height(13.dp))
+                    Spacer(modifier = Modifier.height(13.dp))
 
-                Text(
-                    text = "In the news",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 19.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
-                )
-            }
-
-            items(items = uiState.headlines) { headline ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                ) {
-                    AsyncImage(
-                        model = headline.urlToImage,
-                        contentDescription = "headline image",
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(3 / 2f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(10.dp)
-                            ),
-                        contentScale = ContentScale.Crop
+                    Text(
+                        text = "In the news",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 19.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Start
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(modifier = Modifier.weight(3f)) {
-                        Text(
-                            headline.title.orEmpty(),
-                            maxLines = 2,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 13.sp
+                }
+
+                items(items = uiState.headlines) { headline ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                    ) {
+                        AsyncImage(
+                            model = headline.urlToImage,
+                            contentDescription = "headline image",
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(3 / 2f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = RoundedCornerShape(10.dp)
+                                ),
+                            contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            headline.source?.name.orEmpty(),
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(3f)) {
+                            Text(
+                                headline.title.orEmpty(),
+                                maxLines = 2,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 11.sp, lineHeight = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(5.dp))
+                            Text(
+                                headline.source?.name.orEmpty(),
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
 
             //auth
-            item {
+            uiState.voter?.let {
+                item {
 
-                Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(25.dp))
 
-                val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
 
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                ) {
-                    drawLine(
-                        color = lineColor,
-                        start = Offset.Zero,
-                        end = Offset(size.width, 0f),
-                        strokeWidth = 3f
-                    )
-                }
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                    ) {
+                        drawLine(
+                            color = lineColor,
+                            start = Offset.Zero,
+                            end = Offset(size.width, 0f),
+                            strokeWidth = 3f
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillParentMaxWidth()
-                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillParentMaxWidth()
+                    ) {
+                        Text(
+                            text = "Logged in as ${uiState.voter.fullName}",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .width(250.dp)
+                                .padding(end = 20.dp),
+                            textAlign = TextAlign.Start,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.Logout,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .clickable(interactionSource = remember {
+                                    MutableInteractionSource()
+                                }, indication = rememberRipple(bounded = false)) {
+                                    Firebase.auth.signOut()
+                                },
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     Text(
-                        text = "Logged in as ${uiState.voter?.fullName}",
+                        text = "Voter ID: ${uiState.voter.voterId}",
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp
+                            fontWeight = FontWeight.Normal, fontSize = 10.sp
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .width(250.dp)
-                            .padding(end = 20.dp),
-                        textAlign = TextAlign.Start,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Start
                     )
 
-                    Icon(
-                        imageVector = Icons.Default.Logout,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .clickable(interactionSource = remember {
-                                MutableInteractionSource()
-                            }, indication = rememberRipple(bounded = false)) {
-                                Firebase.auth.signOut()
-                            },
-                        tint = MaterialTheme.colorScheme.onSurface
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Text(
+                        text = "State of origin: ${uiState.voter.stateOfOrigin}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal, fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Start
+                    )
+
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Text(
+                        text = "Local government: ${uiState.voter.localGovernment}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal, fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Start
+                    )
+
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Text(
+                        text = "DOB: ${uiState.voter.dateOfBirth}",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal, fontSize = 10.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.wrapContentSize(),
+                        textAlign = TextAlign.Start
                     )
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = "Voter ID: ${uiState.voter?.voterId}",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Normal, fontSize = 10.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.wrapContentSize(),
-                    textAlign = TextAlign.Start
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "State of origin: ${uiState.voter?.stateOfOrigin}",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Normal, fontSize = 10.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.wrapContentSize(),
-                    textAlign = TextAlign.Start
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "Local government: ${uiState.voter?.localGovernment}",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Normal, fontSize = 10.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.wrapContentSize(),
-                    textAlign = TextAlign.Start
-                )
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "DOB: ${uiState.voter?.dateOfBirth}",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Normal, fontSize = 10.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.wrapContentSize(),
-                    textAlign = TextAlign.Start
-                )
             }
 
         }
@@ -602,13 +662,15 @@ fun PreviewDashboardScreen() {
             finish = {},
             useDarkMode = false,
             toggleDarkMode = {},
-            moveToVoteScreen = {},
+            moveToVoteScreen = { _, _ -> },
             uiState = DashboardViewModel.UiState(
-                voter = Voter(firstName = "Jayson Kardashian Silicon"), candidates = listOf(
+                voter = Voter(firstName = "Jayson Kardashian Silicon"),
+                candidates = listOf(
                     Candidate(party = "ADC"),
                     Candidate(party = "PDP")
                 )
-            ), clearUiMessage = {}
+            ),
+            clearUiMessage = {}
         )
     }
 }

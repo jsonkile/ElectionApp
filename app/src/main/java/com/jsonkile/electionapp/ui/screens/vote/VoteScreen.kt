@@ -32,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,7 +58,7 @@ import com.jsonkile.electionapp.ui.theme.ElectionAppTheme
 @Composable
 fun VoteScreen(
     onBack: () -> Unit,
-    onAuth: (String) -> Unit,
+    onAuth: (Candidate) -> Unit,
     uiState: VoteViewModel.UiState,
     clearUiMessage: () -> Unit
 ) {
@@ -84,7 +83,7 @@ fun VoteScreen(
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
 
-        var selectedParty: String? by remember { mutableStateOf(null) }
+        var selectedCandidate: Candidate? by remember { mutableStateOf(null) }
 
         Text(
             text = "Cast your vote",
@@ -145,14 +144,14 @@ fun VoteScreen(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = rememberRipple(bounded = false),
                             ) {
-                                selectedParty = candidate.party
+                                selectedCandidate = candidate
                             }
                     ) {
 
-                        val imageSize: Dp by animateDpAsState(if (selectedParty == candidate.party) 90.dp else 80.dp)
-                        val imageBorderWidth: Dp by animateDpAsState(if (selectedParty == candidate.party) 5.dp else 0.dp)
-                        val imageBorderColor: Color by animateColorAsState(if (selectedParty == candidate.party) MaterialTheme.colorScheme.primary else Color.Transparent)
-                        val nameTextColor: Color by animateColorAsState(if (selectedParty == candidate.party) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        val imageSize: Dp by animateDpAsState(if (selectedCandidate == candidate) 90.dp else 80.dp)
+                        val imageBorderWidth: Dp by animateDpAsState(if (selectedCandidate == candidate) 5.dp else 0.dp)
+                        val imageBorderColor: Color by animateColorAsState(if (selectedCandidate == candidate) MaterialTheme.colorScheme.primary else Color.Transparent)
+                        val nameTextColor: Color by animateColorAsState(if (selectedCandidate == candidate) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
 
                         AsyncImage(
                             model = candidate.profileImageUrl,
@@ -211,11 +210,9 @@ fun VoteScreen(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = rememberRipple(bounded = false),
-                        enabled = selectedParty
-                            .isNullOrBlank()
-                            .not()
+                        enabled = selectedCandidate != null
                     ) {
-                        onAuth(selectedParty!!)
+                        onAuth(selectedCandidate!!)
                     },
                 tint = MaterialTheme.colorScheme.primary
             )
