@@ -33,7 +33,7 @@ class HomeViewModel : ViewModel() {
                 _uiState.update { it.copy(isLoading = true) }
 
                 val voters =
-                    ktorClient.get("https://raw.githubusercontent.com/jsonkile/evoting-app-host/main/voters.json")
+                    ktorClient.get("https://firebasestorage.googleapis.com/v0/b/election-d2d38.appspot.com/o/voters.json?alt=media&token=9e2f2384-be8a-4bed-a43c-ec0cc53909bf")
                         .body<List<Voter>>()
 
                 val voter =
